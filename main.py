@@ -142,13 +142,13 @@ def valid_moves(piece, old_pos, new_pos, board):
     if piece == "pawn":
         valid_pawn_move(piece, old_pos, new_pos, board)
     elif piece == "rook":
-        valid_moves_rook(piece, old_pos, new_pos, board)
+        valid_rook_move(piece, old_pos, new_pos, board)
     elif piece == "bishop":
-        valid_moves_bishop(piece, old_pos, new_pos, board)
+        valid_bishop_move(piece, old_pos, new_pos, board)
     elif piece == "horse":
         valid_moves_horse(piece, old_pos, new_pos, board)
     elif piece == "queen":
-        valid_moves_queen(piece, old_pos, new_pos, board)
+        valid_queen_move(piece, old_pos, new_pos, board)
     elif piece == "knight":
         valid_moves_knigt(piece, old_pos, new_pos, board)
 
@@ -187,6 +187,7 @@ def valid_rook_move(piece, old_pos, new_pos, board):
     x2, y2 = new_pos
     valid_moves = []
 
+    #doprava
     directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 
     for dx, dy in directions:
@@ -213,10 +214,61 @@ def valid_rook_move(piece, old_pos, new_pos, board):
 
 def valid_bishop_move(piece, old_pos, new_pos, board):
     x1, y1 = old_pos
-    x2, y2 = old_pos
+    x2, y2 = new_pos
+    valid_moves = []
+    #levy horni roh matrixu, pravy horni roh
+    directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+
+    for dx, dy in directions:
+        nx, ny = x1, y1
+
+        while True:
+            nx += dx
+            ny += dy
+
+            if not(0 <= nx < 8 and 0 <= ny < 8):
+                break
+
+            val = board.grid.get((nx, ny))
+
+            if val is None:
+                valid_moves.append((nx, ny))
+            else:
+                if val.color != piece.color:
+                    valid_moves.append(nx, ny)
+                break
+
+    return new_pos in valid_moves
+
+
+def valid_queen_move(piece, old_pos, new_pos, board):
+    if valid_bishop_move(piece, old_pos, new_pos, board) or valid_rook_move(piece, old_pos, new_pos, board):
+        return True
+    else:
+        return False
+
+def valid_horse_move(piece, old_pos, new_pos, board):
+    x1, y1 = old_pos
+    x2, y2 = new_pos
     valid_moves = []
 
-    
+    possible_moves = [
+        (x1 - 2, y1 - 1), (x1 - 2, y1 + 1),
+        (x1 + 2, y1 - 1), (x1 + 2, y1 + 1),
+        (x1 - 1, y1 - 2), (x1 - 1, y1 + 2),
+        (x1 + 1, y1 - 2), (x1 + 1, y1 + 2)
+    ]
+
+
+    if new_pos in possible_moves and 0 <= x2 < 8 and 0 <= y2 < 8:
+
+        if board.grid.get(new_pos) is None or board.grid[new_pos].color != piece.color:
+            return True
+        
+    return False
+
+
+
                 
         
 
