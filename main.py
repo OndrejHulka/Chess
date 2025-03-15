@@ -56,7 +56,7 @@ class Board:
     def move_pieces(self, old_pos, new_pos):
         if old_pos in self.grid and self.grid[old_pos] is not None:
             piece = self.grid.pop(old_pos)
-
+        
             self.grid[new_pos] = piece
             piece.move(new_pos)
             self.grid[old_pos] = None
@@ -92,7 +92,7 @@ class Board:
         self.draw(screen)
 
 board = Board()
-
+selected_pos = None
 running = True
 #main cycle of pygame
 while running:
@@ -100,28 +100,34 @@ while running:
     draw_board()
 
     board.draw(screen)
+
+    if selected_pos is not None and selected_pos in board.grid and board.grid[selected_pos] is not None:
+        x, y = selected_pos
+        pygame.draw.rect(screen, (255, 255, 0, 128), (x*100, y*100, 100, 100), 2)
+
     pygame.display.flip()  
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
+        
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = pygame.mouse.get_pos()
             row = x // 100
             col = y // 100
             start_pos = (row, col)
 
-            if board.grid[start_pos] != None:
+            if board.grid[start_pos] is not None:
                 selected_pos = start_pos
-            else:
-                selected_pos = None
 
         if event.type == pygame.MOUSEBUTTONUP:
-            x, y = pygame.mouse.get_pos()
-            row = x // 100
-            col = y // 100
-            end_pos = (row, col)
+            if selected_pos is not None:
+                x, y = pygame.mouse.get_pos()
+                row = x // 100
+                col = y // 100
+                end_pos = (row, col)
 
-            board.move_pieces(old_pos=selected_pos, new_pos=end_pos)
+                if selected_pos != end_pos and board.grid[end_pos] == None:
+                    board.move_pieces(old_pos=selected_pos, new_pos=end_pos)
+     
             selected_pos = None
 
