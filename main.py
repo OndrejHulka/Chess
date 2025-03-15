@@ -131,3 +131,57 @@ while running:
      
             selected_pos = None
 
+
+def valid_moves(piece, old_pos, new_pos, board=screen):
+    if piece is None:
+        return False
+    
+    if piece == "pawn":
+        valid_moves_pawn(piece, old_pos, new_pos, screen)
+    elif piece == "rook":
+        valid_moves_rook(piece, old_pos, new_pos, board)
+    elif piece == "bishop":
+        valid_moves_bishop(piece, old_pos, new_pos, board)
+    elif piece == "horse":
+        valid_moves_horse(piece, old_pos, new_pos, board)
+    elif piece == "queen":
+        valid_moves_queen(piece, old_pos, new_pos, board)
+    elif piece == "knight":
+        valid_moves_knigt(piece, old_pos, new_pos, board)
+
+
+
+
+
+def valid_moves_pawn(piece, old_pos, new_pos, board):
+    x1, y1 = old_pos
+    x2, y2 = new_pos
+    valid_moves = []
+    
+    if piece.color == "white":
+        direction = -1
+        start_row = 6
+    else:
+        direction = 1
+        start_row = 1
+
+    if board.grid.get((x1, y1 + direction)) is None:
+        valid_moves.append([x1, y1 + direction])
+
+        if y1 == start_row and board.grid.get((x1, y1 + 2*direction)) is None:
+            valid_moves.append([x1, y1 + 2*direction])
+    
+    #jestli existuje tato mrizka a na pozici neco je
+    if (x1 + 1, y1 + direction) in board.grid and board.grid[x1 + 1, y1 + direction]:
+        if board.grid[x1 + 1, y1 + direction].color != piece.color:
+            valid_moves.append[x1 + 1, y1 + direction]
+
+    if (x1 - 1, y1 + direction) in board.grid and board.grid[x1 - 1, y1 - direction]:
+        if board.grid[x1 - 1, y1 + direction].color != piece.color:
+            valid_moves.append[x1 - 1, y1 + direction]
+
+    
+    return [x2, y2] in valid_moves
+    print(valid_moves)
+
+
