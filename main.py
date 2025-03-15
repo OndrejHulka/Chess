@@ -126,18 +126,21 @@ while running:
                 col = y // 100
                 end_pos = (row, col)
 
-                if selected_pos != end_pos and board.grid[end_pos] == None:
+                piece = board.grid[start_pos]
+
+                #podminka zdali to neni stejne policko a jeslti board.grid[endpos] je praznde a podminka zdali je to validni move
+                if selected_pos != end_pos and board.grid[end_pos] == None and valid_moves(piece, piece.position, end_pos, board):
                     board.move_pieces(old_pos=selected_pos, new_pos=end_pos)
      
             selected_pos = None
 
-
-def valid_moves(piece, old_pos, new_pos, board=screen):
+#will be returning True or False
+def valid_moves(piece, old_pos, new_pos, board):
     if piece is None:
         return False
     
     if piece == "pawn":
-        valid_moves_pawn(piece, old_pos, new_pos, screen)
+        valid_pawn_move(piece, old_pos, new_pos, board)
     elif piece == "rook":
         valid_moves_rook(piece, old_pos, new_pos, board)
     elif piece == "bishop":
@@ -152,36 +155,70 @@ def valid_moves(piece, old_pos, new_pos, board=screen):
 
 
 
+#check moves of pawn
+def valid_pawn_move(piece, old_pos, new_pos, board):
+    x1, y1 = old_pos
+    x2, y2 = (new_pos)
+    valid_moves = set()
 
-def valid_moves_pawn(piece, old_pos, new_pos, board):
+    direction = -1 if piece.color == "white" else 1
+    start_row = 6 if piece.color == "white" else 1
+
+    if board.grid.get((x1, y1 + direction)) is None:
+        valid_moves.add((x1, y1 + direction))
+
+        if y1 == start_row and board.grid.get((x1, y1 + 2 * direction)) is None:
+            valid_moves.add((x1, y1 + 2 * direction))
+
+
+    right_attack = (x1 + 1, y1 + direction)
+    if board.grid.get(right_attack) and board.grid[right_attack].color != piece.color:
+        valid_moves.add(right_attack)
+
+    left_attack = (x1 - 1, y1 + direction)
+    if board.grid.get(left_attack) and board.grid[left_attack].color != piece.color:
+        valid_moves.add(left_attack)
+
+    return new_pos in valid_moves
+
+
+def valid_rook_move(piece, old_pos, new_pos, board):
     x1, y1 = old_pos
     x2, y2 = new_pos
     valid_moves = []
+
+    directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+
+    for dx, dy in directions:
+        nx, ny = x1, y1
+
+        while True:
+            nx += dx
+            ny += dy
+
+            if not (0 <= nx < 8 and 0 <= ny < 8):
+                break
+
+            val = board.grid.get((nx, ny))
+
+            if val is None:  
+                valid_moves.append((nx, ny))
+            else:
+                if val.color != piece.color: 
+                    valid_moves.append((nx, ny))
+                break  
+
+    return new_pos in valid_moves  
+
+
+def valid_bishop_move(piece, old_pos, new_pos, board):
+    x1, y1 = old_pos
+    x2, y2 = old_pos
+    valid_moves = []
+
     
-    if piece.color == "white":
-        direction = -1
-        start_row = 6
-    else:
-        direction = 1
-        start_row = 1
+                
+        
 
-    if board.grid.get((x1, y1 + direction)) is None:
-        valid_moves.append([x1, y1 + direction])
-
-        if y1 == start_row and board.grid.get((x1, y1 + 2*direction)) is None:
-            valid_moves.append([x1, y1 + 2*direction])
-    
-    #jestli existuje tato mrizka a na pozici neco je
-    if (x1 + 1, y1 + direction) in board.grid and board.grid[x1 + 1, y1 + direction]:
-        if board.grid[x1 + 1, y1 + direction].color != piece.color:
-            valid_moves.append[x1 + 1, y1 + direction]
-
-    if (x1 - 1, y1 + direction) in board.grid and board.grid[x1 - 1, y1 - direction]:
-        if board.grid[x1 - 1, y1 + direction].color != piece.color:
-            valid_moves.append[x1 - 1, y1 + direction]
-
-    
-    return [x2, y2] in valid_moves
-    print(valid_moves)
-
+        
 
