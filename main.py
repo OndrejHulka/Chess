@@ -2,6 +2,9 @@ import pygame
 
 #ui design
 pygame.init()
+
+#sound
+pygame.mixer.init()
 #screen
 screen = pygame.display.set_mode((800,800))
 
@@ -97,24 +100,19 @@ def valid_moves(piece, old_pos, new_pos, board):
         return False
 
     if piece.type == "pawn":
-        valid_pawn_move(piece, old_pos, new_pos, board)
+        return valid_pawn_move(piece, old_pos, new_pos, board)
     elif piece.type == "rook":
-        valid_rook_move(piece, old_pos, new_pos, board)
+        return valid_rook_move(piece, old_pos, new_pos, board)
     elif piece.type == "bishop":
-        valid_bishop_move(piece, old_pos, new_pos, board)
+        return valid_bishop_move(piece, old_pos, new_pos, board)
     elif piece.type == "horse":
-        valid_horse_move(piece, old_pos, new_pos, board)
+        return valid_horse_move(piece, old_pos, new_pos, board)
     elif piece.type == "queen":
-        valid_queen_move(piece, old_pos, new_pos, board)
+        return valid_queen_move(piece, old_pos, new_pos, board)
     elif piece.type == "king":
-        valid_king_move(piece, old_pos, new_pos, board)
+        return valid_king_move(piece, old_pos, new_pos, board)
 
-    return False
-
-
-
-
-#check moves of pawn
+#check moves of pawn - working
 def valid_pawn_move(piece, old_pos, new_pos, board):
     x1, y1 = old_pos
     x2, y2 = (new_pos)
@@ -140,7 +138,7 @@ def valid_pawn_move(piece, old_pos, new_pos, board):
     
     return new_pos in valid_moves
 
-
+#working
 def valid_rook_move(piece, old_pos, new_pos, board):
     x1, y1 = old_pos
     x2, y2 = new_pos
@@ -194,9 +192,8 @@ def valid_bishop_move(piece, old_pos, new_pos, board):
                 valid_moves.append((nx, ny))
             else:
                 if val.color != piece.color:
-                    valid_moves.append(nx, ny)
+                    valid_moves.append((nx, ny))
                 break
-
     return new_pos in valid_moves
 
 
@@ -209,7 +206,6 @@ def valid_queen_move(piece, old_pos, new_pos, board):
 def valid_horse_move(piece, old_pos, new_pos, board):
     x1, y1 = old_pos
     x2, y2 = new_pos
-    valid_moves = []
 
     possible_moves = [
         (x1 - 2, y1 - 1), (x1 - 2, y1 + 1),
@@ -223,7 +219,6 @@ def valid_horse_move(piece, old_pos, new_pos, board):
 
         if board.grid.get(new_pos) is None or board.grid[new_pos].color != piece.color:
             return True
-        
     return False
 
 def valid_king_move(piece, old_pos, new_pos, board):
@@ -252,7 +247,16 @@ def is_square_atacked(pos, board, color):
                 return True
     return False
 
+def is_king_in_check(board, color):
+    king_pos = None
+    for pos, piece in board.grid.items():
+        if piece and piece.color == color and piece.type == "king":
+            king_pos = pos
+            break
+    return king_pos, is_square_atacked(king_pos, board, color) 
 
+#current player
+current_player = "white"
 board = Board()
 selected_pos = None
 running = True
@@ -266,20 +270,32 @@ while running:
     if selected_pos is not None and selected_pos in board.grid and board.grid[selected_pos] is not None:
         x, y = selected_pos
         pygame.draw.rect(screen, (255, 255, 0, 128), (x*100, y*100, 100, 100), 2)
+        
+
+    king_pos, in_check = is_king_in_check(board, current_player)
+    if in_check:
+        x, y = king_pos
+        move_sound = pygame.mixer.Sound("chess/image/move-check.mp3")
+        pygame.draw.rect(screen, (255, 255, 140, 200), (x*100, y*100, 100, 100), 2)
+        
 
     pygame.display.flip()  
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        
+
+
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = pygame.mouse.get_pos()
             row = x // 100
             col = y // 100
             start_pos = (row, col)
 
-            if board.grid[start_pos] is not None:
-                selected_pos = start_pos
+            if start_pos in board.grid and board.grid[start_pos] is not None:
+                piece = board.grid[start_pos]
+
+                if piece.color == current_player:
+                    selected_pos = start_pos
 
         if event.type == pygame.MOUSEBUTTONUP:
             if selected_pos is not None:
@@ -290,11 +306,18 @@ while running:
 
                 piece = board.grid[start_pos]
 
-                #podminka zdali to neni stejne policko a jeslti board.grid[endpos] je praznde a podminka zdali je to validni move
-                if selected_pos != end_pos and board.grid[end_pos] == None and valid_moves(piece, start_pos, end_pos, board):
+                if selected_pos != end_pos and (board.grid[end_pos] is None or board.grid[end_pos].color != piece.color) and valid_moves(piece, start_pos, end_pos, board):
                     board.move_pieces(old_pos=selected_pos, new_pos=end_pos)
+
+                    if current_player == "white":
+                        current_player = "black"
+                    else:
+                        current_player = "white"
      
             selected_pos = None
+    
+
+
     
 
 
@@ -302,4 +325,3 @@ while running:
         
 
         
-
