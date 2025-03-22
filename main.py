@@ -91,66 +91,25 @@ class Board:
 
         self.draw(screen)
 
-board = Board()
-selected_pos = None
-running = True
-#main cycle of pygame
-while running:
-    screen.fill((230, 194, 139))
-    draw_board()
-
-    board.draw(screen)
-
-    if selected_pos is not None and selected_pos in board.grid and board.grid[selected_pos] is not None:
-        x, y = selected_pos
-        pygame.draw.rect(screen, (255, 255, 0, 128), (x*100, y*100, 100, 100), 2)
-
-    pygame.display.flip()  
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            x, y = pygame.mouse.get_pos()
-            row = x // 100
-            col = y // 100
-            start_pos = (row, col)
-
-            if board.grid[start_pos] is not None:
-                selected_pos = start_pos
-
-        if event.type == pygame.MOUSEBUTTONUP:
-            if selected_pos is not None:
-                x, y = pygame.mouse.get_pos()
-                row = x // 100
-                col = y // 100
-                end_pos = (row, col)
-
-                piece = board.grid[start_pos]
-
-                #podminka zdali to neni stejne policko a jeslti board.grid[endpos] je praznde a podminka zdali je to validni move
-                if selected_pos != end_pos and board.grid[end_pos] == None and valid_moves(piece, piece.position, end_pos, board):
-                    board.move_pieces(old_pos=selected_pos, new_pos=end_pos)
-     
-            selected_pos = None
-
 #will be returning True or False
 def valid_moves(piece, old_pos, new_pos, board):
     if piece is None:
         return False
-    
-    if piece == "pawn":
+
+    if piece.type == "pawn":
         valid_pawn_move(piece, old_pos, new_pos, board)
-    elif piece == "rook":
+    elif piece.type == "rook":
         valid_rook_move(piece, old_pos, new_pos, board)
-    elif piece == "bishop":
+    elif piece.type == "bishop":
         valid_bishop_move(piece, old_pos, new_pos, board)
-    elif piece == "horse":
-        valid_moves_horse(piece, old_pos, new_pos, board)
-    elif piece == "queen":
+    elif piece.type == "horse":
+        valid_horse_move(piece, old_pos, new_pos, board)
+    elif piece.type == "queen":
         valid_queen_move(piece, old_pos, new_pos, board)
-    elif piece == "knight":
-        valid_moves_knigt(piece, old_pos, new_pos, board)
+    elif piece.type == "king":
+        valid_king_move(piece, old_pos, new_pos, board)
+
+    return False
 
 
 
@@ -178,7 +137,7 @@ def valid_pawn_move(piece, old_pos, new_pos, board):
     left_attack = (x1 - 1, y1 + direction)
     if board.grid.get(left_attack) and board.grid[left_attack].color != piece.color:
         valid_moves.add(left_attack)
-
+    
     return new_pos in valid_moves
 
 
@@ -267,6 +226,76 @@ def valid_horse_move(piece, old_pos, new_pos, board):
         
     return False
 
+def valid_king_move(piece, old_pos, new_pos, board):
+    x1, y1 = old_pos
+    x2, y2 = new_pos
+    valid_moves = [
+        (x1 - 1, y1 - 1), (x1, y1 - 1), (x1 + 1, y1 - 1),
+        (x1 - 1, y1), (x1 + 1, y1),
+        (x1 - 1, y1 + 1), (x1, y1 + 1), (x1 + 1, y1 + 1)
+    ]
+
+    if new_pos in valid_moves and 0 <= x2 <8 and 0 <= y2 < 8:
+        if board.grid.get(new_pos) is None or board.grid[new_pos].color != piece.color:
+            
+            if is_square_atacked(new_pos, board, piece.color):
+                return False
+            
+            return True
+    return False
+
+
+def is_square_atacked(pos, board, color):
+    for piece_pos, piece in board.grid.items():
+        if piece is not None and piece.color != color:
+            if valid_moves(piece, piece_pos, pos, board):
+                return True
+    return False
+
+
+board = Board()
+selected_pos = None
+running = True
+#main cycle of pygame
+while running:
+    screen.fill((230, 194, 139))
+    draw_board()
+
+    board.draw(screen)
+
+    if selected_pos is not None and selected_pos in board.grid and board.grid[selected_pos] is not None:
+        x, y = selected_pos
+        pygame.draw.rect(screen, (255, 255, 0, 128), (x*100, y*100, 100, 100), 2)
+
+    pygame.display.flip()  
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            x, y = pygame.mouse.get_pos()
+            row = x // 100
+            col = y // 100
+            start_pos = (row, col)
+
+            if board.grid[start_pos] is not None:
+                selected_pos = start_pos
+
+        if event.type == pygame.MOUSEBUTTONUP:
+            if selected_pos is not None:
+                x, y = pygame.mouse.get_pos()
+                row = x // 100
+                col = y // 100
+                end_pos = (row, col)
+
+                piece = board.grid[start_pos]
+
+                #podminka zdali to neni stejne policko a jeslti board.grid[endpos] je praznde a podminka zdali je to validni move
+                if selected_pos != end_pos and board.grid[end_pos] == None and valid_moves(piece, start_pos, end_pos, board):
+                    board.move_pieces(old_pos=selected_pos, new_pos=end_pos)
+     
+            selected_pos = None
+    
 
 
                 
