@@ -253,7 +253,39 @@ def is_king_in_check(board, color):
         if piece and piece.color == color and piece.type == "king":
             king_pos = pos
             break
-    return king_pos, is_square_atacked(king_pos, board, color) 
+    return king_pos, is_square_atacked(king_pos, board, color)
+
+def is_king_in_mate(board, color):
+    king_pos, in_check = is_king_in_check(board, color)
+    if not in_check:
+        return False
+
+    for pos, piece in board.grid.items():
+        if piece and piece.color == color:
+            for x in range(8):
+                for y in range(8):
+                    new_pos = (x, y)
+                    if pos == new_pos:
+                        continue
+                    
+                    if valid_moves(piece, pos, new_pos, board):
+                    
+                        original_piece = board.grid.get(new_pos)
+                        board.grid[new_pos] = piece
+                        board.grid[pos] = None
+                        
+                        
+                        _, still_in_check = is_king_in_check(board, color)
+                        
+                       
+                        board.grid[pos] = piece
+                        board.grid[new_pos] = original_piece
+                        
+                        if not still_in_check:
+                            return False  
+
+    return True  
+
 
 #current player
 current_player = "white"
@@ -277,7 +309,16 @@ while running:
         x, y = king_pos
         move_sound = pygame.mixer.Sound("chess/image/move-check.mp3")
         pygame.draw.rect(screen, (255, 255, 140, 200), (x*100, y*100, 100, 100), 2)
-        
+
+    if is_king_in_mate(board, current_player):
+        winner_text = f"{'White' if current_player == "black" else "Black"} wins by checkmate"
+        font = pygame.font.SysFont(None, 60)
+        text_surface = font.render(winner_text, True, (200,0,0))
+        text_rect = text_surface.get_rect(center=(400, 400))
+
+        board.draw(screen)
+        screen.blit(text_surface, text_rect)
+        pygame.display.flip()   
 
     pygame.display.flip()  
     for event in pygame.event.get():
@@ -315,13 +356,7 @@ while running:
                         current_player = "white"
      
             selected_pos = None
-    
-
-
-    
-
-
-                
-        
+            
 
         
+
